@@ -71,9 +71,6 @@ const GamesScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: {
-
-    },
-    container: {
         padding: 20,
         backgroundColor: 'black',
   },

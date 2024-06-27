@@ -7,7 +7,6 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
@@ -26,32 +25,34 @@ export default function TabLayout() {
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
       }}>
+
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
+          title: 'Splash Screen',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="OnboardingScreen"
+        options={{
+          title: 'Onboarding Personal Info',
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="MovieScreen"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Onboarding Movies',
+          tabBarIcon: ({ color }) => <TabBarIcon name="film" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="SongScreen"
+        options={{
+          title: 'Onboarding Songs',
+          tabBarIcon: ({ color }) => <TabBarIcon name="music" color={color} />,
         }}
       />
     </Tabs>

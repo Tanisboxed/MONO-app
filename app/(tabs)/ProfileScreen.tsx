@@ -19,7 +19,7 @@ const renderItem = ({ item }: { item: string }) => (
 const ProfileScreen: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.heading}>Profile</Text>
+      <Text style={styles.heading}>Your Mono.</Text>
 
       <Text style={styles.category}>Your Movies</Text>
       <FlatList

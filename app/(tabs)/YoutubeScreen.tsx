@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   label: {
+    marginTop: 10,
     fontSize: 16,
     marginBottom: 5,
     color: 'white',
@@ -148,6 +149,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    borderBottomColor: 'grey',
+    borderBottomWidth: 1,
   },
   tile: {
     width: '45%',
