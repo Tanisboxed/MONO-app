@@ -1,13 +1,17 @@
-// app/screens/OnboardingMoviesScreen.tsx
-import React, { useState } from 'react';
+// app/screens/MovieScreen.tsx
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-interface FormData {
-  favoriteMovies: string[];
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string | null;
 }
 
-
+interface FormData {
+  favoriteMovies: Movie[];
+}
 
 const MovieScreen: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
@@ -17,33 +21,76 @@ const MovieScreen: React.FC = () => {
   const navigation = useNavigation();
 
   const [movieInput, setMovieInput] = useState<string>('');
-  const movieSuggestions = ['Inception', 'The Dark Knight', 'Interstellar', 'Pulp Fiction', 'The Matrix'];
+  const [movieSuggestions, setMovieSuggestions] = useState<Movie[]>([]);
 
-  const handleAddMovie = () => {
-    if (formData.favoriteMovies.length < 5 && movieInput && !formData.favoriteMovies.includes(movieInput)) {
+  const handleAddMovie = (movie: Movie) => {
+    if (
+      formData.favoriteMovies.length < 5 &&
+      !formData.favoriteMovies.find((m) => m.id === movie.id)
+    ) {
       setFormData({
         ...formData,
-        favoriteMovies: [...formData.favoriteMovies, movieInput],
+        favoriteMovies: [...formData.favoriteMovies, movie],
       });
       setMovieInput('');
     }
   };
 
+  const getMovies = async () => {
+    try {
+      let apiUrl = `http://localhost:4000/search/movies?query=${movieInput}&type=movie`;
+      const response = await fetch(apiUrl);
+      const json = await response.json();
+      const top5Movies: Movie[] = json.results.slice(0, 5);
+      setMovieSuggestions(top5Movies);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (movieInput.length > 0) {
+      getMovies();
+    }
+  }, [movieInput]);
+
   const renderMovieSuggestions = () => {
     return (
       <View style={styles.suggestionsContainer}>
         {movieSuggestions
-          .filter((movie) => movie.toLowerCase().includes(movieInput.toLowerCase()))
+          .filter((movie) => movie.title.toLowerCase().includes(movieInput.toLowerCase()) && movie.poster_path !== null)
           .map((suggestion, index) => (
             <TouchableOpacity
               key={index}
               style={styles.suggestion}
-              onPress={() => setMovieInput(suggestion)}
+              onPress={() => handleAddMovie(suggestion)}
             >
-              <Text style={styles.suggestionText}>{suggestion}</Text>
+              <Image
+                source={{ uri: `https://image.tmdb.org/t/p/w500${suggestion.poster_path}` }}
+                style={styles.posterImage}
+                resizeMode="cover"
+              />
+              <Text style={styles.suggestionText}>{suggestion.title}</Text>
             </TouchableOpacity>
           ))}
       </View>
+    );
+  };
+
+  const renderFavoriteMovies = () => {
+    return (
+      <ScrollView style={styles.movieContainer}>
+        {formData.favoriteMovies.map((movie, index) => (
+          <View key={index} style={styles.movieTile}>
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
+              style={styles.posterImage}
+              resizeMode="cover"
+            />
+            <Text style={styles.movieText}>{movie.title}</Text>
+          </View>
+        ))}
+      </ScrollView>
     );
   };
 
@@ -58,17 +105,9 @@ const MovieScreen: React.FC = () => {
           placeholder="Type to search movies..."
         />
         {movieInput.length > 0 && renderMovieSuggestions()}
-        <Button title="Add Movie" onPress={handleAddMovie} />
       </View>
-      <View style={styles.movieContainer}>
-        {formData.favoriteMovies.map((movie, index) => (
-          <View key={index} style={styles.movieTile}>
-            <Image source={require('../../assets/movieposter/poster.png')} style={styles.posterImage} resizeMode="cover" />
-            <Text style={styles.movieText}>{movie}</Text>
-          </View>
-        ))}
-      </View>
-      <Button title="Next" onPress={() => {console.log(formData);navigation.navigate('SongScreen');}} />
+      {formData.favoriteMovies.length > 0 && renderFavoriteMovies()}
+      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('SongScreen'); }} />
     </ScrollView>
   );
 };
@@ -84,6 +123,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
+    color: 'white',
   },
   input: {
     borderWidth: 1,
@@ -95,15 +135,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   suggestionsContainer: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
     marginTop: 5,
     maxHeight: 150,
     overflow: 'scroll',
   },
   suggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
@@ -111,34 +149,27 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 16,
+    marginLeft: 10,
+    color: 'white',
   },
   movieContainer: {
     marginTop: 20,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
   },
   movieTile: {
-    width: '45%',
-    margin: 9,
-    height: 200,
-    backgroundColor: 'grey',
-    borderRadius: 15,
+    width: '100%',
+    marginBottom: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    flexDirection: 'column', // Ensure items are aligned horizontally
-    
   },
   posterImage: {
-    width: '100%', // Adjust as needed
-    height: '80%', // Adjust as needed
+    width: 80,
+    height: 120,
     borderRadius: 5,
-    marginBottom: 7,
-     // Adjust spacing between image and text
+    marginRight: 10,
   },
   movieText: {
-    fontSize: 20,
-    textAlign: 'center',
-    flex: 1, // Ensure text takes remaining space
-    color: 'white'
+    fontSize: 16,
+    color: 'white',
   },
 });
 
