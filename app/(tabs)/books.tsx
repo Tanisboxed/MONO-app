@@ -124,7 +124,7 @@ const BookScreen: React.FC = () => {
           {renderFavoriteBooks()}
         </View>
       )}
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('SongScreen'); }} />
+      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('ProfileScreen'); }} />
     </View>
   );
 };
