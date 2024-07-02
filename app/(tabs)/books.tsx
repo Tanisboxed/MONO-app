@@ -1,76 +1,83 @@
+// app/screens/BookScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Dimensions, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const screen = Dimensions.get('window');
 
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string | null;
+interface Book {
+  id: string;
+  volumeInfo: {
+    title: string;
+    imageLinks: {
+      thumbnail: string;
+    };
+  };
 }
 
 interface FormData {
-  favoriteMovies: Movie[];
+  favoriteBooks: Book[];
 }
 
-const MovieScreen: React.FC = () => {
+const BookScreen: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
-    favoriteMovies: [],
+    favoriteBooks: [],
   });
 
   const navigation = useNavigation();
 
-  const [movieInput, setMovieInput] = useState<string>('');
-  const [movieSuggestions, setMovieSuggestions] = useState<Movie[]>([]);
+  const [bookInput, setBookInput] = useState<string>('');
+  const [bookSuggestions, setBookSuggestions] = useState<Book[]>([]);
 
-  const handleAddMovie = (movie: Movie) => {
+  const handleAddBook = (book: Book) => {
     if (
-      formData.favoriteMovies.length < 5 &&
-      !formData.favoriteMovies.find((m) => m.id === movie.id)
+      formData.favoriteBooks.length < 5 &&
+      !formData.favoriteBooks.find((b) => b.id === book.id)
     ) {
       setFormData({
         ...formData,
-        favoriteMovies: [...formData.favoriteMovies, movie],
+        favoriteBooks: [...formData.favoriteBooks, book],
       });
-      setMovieInput('');
+      setBookInput('');
     }
   };
 
-  const getMovies = async () => {
+  const getBooks = async () => {
     try {
-      let apiUrl = `https://powerful-distinctly-bat.ngrok-free.app/search/movies?query=${movieInput}&type=movie`;
+      let apiUrl = `http://powerful-distinctly-bat.ngrok-free.app/search/books?query=a`;
+      if (bookInput !== '' && bookInput !== null) {
+        apiUrl = `http://powerful-distinctly-bat.ngrok-free.app/search/books?query=${bookInput}`;
+      }
+
       const response = await fetch(apiUrl);
       const json = await response.json();
-      const top5Movies: Movie[] = json.slice(0, 5);
-      setMovieSuggestions(top5Movies);
+      const top5Books: Book[] = json.items.slice(0, 5);
+      setBookSuggestions(top5Books);
     } catch (err) {
       console.log(err);
     }
   };
 
   useEffect(() => {
-    if (movieInput.length > 0) {
-      getMovies();
-    }
-  }, [movieInput]);
+    getBooks();
+  }, [bookInput]);
 
-  const renderMovieSuggestions = () => {
+  const renderBookSuggestions = () => {
     return (
       <FlatList
-        data={movieSuggestions.filter(movie => movie.title.toLowerCase().includes(movieInput.toLowerCase()) && movie.poster_path !== null)}
-        keyExtractor={(item) => item.id.toString()}
+        data={bookSuggestions.filter(book => book.volumeInfo.title.toLowerCase().includes(bookInput.toLowerCase()) && book.volumeInfo.imageLinks?.thumbnail !== null)}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.suggestion}
-            onPress={() => handleAddMovie(item)}
+            onPress={() => handleAddBook(item)}
           >
             <Image
-              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-              style={styles.posterImage}
+              source={{ uri: item.volumeInfo.imageLinks?.thumbnail }}
+              style={styles.coverImage}
               resizeMode="cover"
             />
-            <Text style={styles.suggestionText}>{item.title}</Text>
+            <Text style={styles.suggestionText}>{item.volumeInfo.title}</Text>
           </TouchableOpacity>
         )}
         style={styles.suggestionsContainer}
@@ -79,22 +86,22 @@ const MovieScreen: React.FC = () => {
     );
   };
 
-  const renderFavoriteMovies = () => {
+  const renderFavoriteBooks = () => {
     return (
       <FlatList
-        data={formData.favoriteMovies}
-        keyExtractor={(item) => item.id.toString()}
+        data={formData.favoriteBooks}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.movieTile}>
+          <View style={styles.bookTile}>
             <Image
-              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-              style={styles.posterImage}
+              source={{ uri: item.volumeInfo.imageLinks.thumbnail }}
+              style={styles.coverImage}
               resizeMode="cover"
             />
-            <Text style={styles.movieText}>{item.title}</Text>
+            <Text style={styles.bookText}>{item.volumeInfo.title}</Text>
           </View>
         )}
-        style={styles.suggestionsContainer}
+        style={styles.favoriteBooksContainer}
         showsVerticalScrollIndicator={false}
       />
     );
@@ -103,18 +110,18 @@ const MovieScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Top 5 Movies:</Text>
+        <Text style={styles.label}>Top 5 Books:</Text>
         <TextInput
           style={styles.input}
-          value={movieInput}
-          onChangeText={(text) => setMovieInput(text)}
-          placeholder="Type to search movies..."
+          value={bookInput}
+          onChangeText={(text) => setBookInput(text)}
+          placeholder="Type to search books..."
         />
-        {movieInput.length > 0 && renderMovieSuggestions()}
+        {bookInput.length > 0 && renderBookSuggestions()}
       </View>
-      {formData.favoriteMovies.length > 0 && (
-        <View style={styles.favoriteMoviesContainer}>
-          {renderFavoriteMovies()}
+      {formData.favoriteBooks.length > 0 && (
+        <View style={styles.favoriteBooksContainer}>
+          {renderFavoriteBooks()}
         </View>
       )}
       <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('SongScreen'); }} />
@@ -161,26 +168,26 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: 'white',
   },
-  favoriteMoviesContainer: {
+  favoriteBooksContainer: {
     flex: 1,
     marginTop: 20,
   },
-  movieTile: {
+  bookTile: {
     width: '100%',
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  posterImage: {
+  coverImage: {
     width: 80,
     height: 120,
     borderRadius: 5,
     marginRight: 10,
   },
-  movieText: {
+  bookText: {
     fontSize: 16,
     color: 'white',
   },
 });
 
-export default MovieScreen;
+export default BookScreen;
