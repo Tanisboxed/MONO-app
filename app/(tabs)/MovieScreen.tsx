@@ -11,11 +11,15 @@ interface Movie {
 
 interface FormData {
   favoriteMovies: Movie[];
+  favoriteSongs: any[];
+  favoriteArtists: any[];
 }
 
 const MovieScreen: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     favoriteMovies: [],
+    favoriteSongs: [],
+    favoriteArtists: [],
   });
 
   const navigation = useNavigation();
@@ -107,7 +111,12 @@ const MovieScreen: React.FC = () => {
         {movieInput.length > 0 && renderMovieSuggestions()}
       </View>
       {formData.favoriteMovies.length > 0 && renderFavoriteMovies()}
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('SongScreen'); }} />
+      <Button
+        title="Next"
+        onPress={() => {
+          navigation.navigate('SongScreen', { formData });
+        }}
+      />
     </ScrollView>
   );
 };

@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 interface FormData {
+  favoriteMovies: any[];
   favoriteSongs: string[];
   favoriteAlbums: string[];
   favoriteArtists: string[];
 }
 
 const SongScreen: React.FC = () => {
+  const route = useRoute();
+  const initialFormData = (route.params as { formData: FormData }).formData;
+
   const [formData, setFormData] = useState<FormData>({
-    favoriteSongs: [],
-    favoriteAlbums: [],
-    favoriteArtists: [],
+    ...initialFormData,
+    favoriteSongs: initialFormData.favoriteSongs || [],
+    favoriteAlbums: initialFormData.favoriteAlbums || [],
+    favoriteArtists: initialFormData.favoriteArtists || [],
   });
 
   const navigation = useNavigation();
@@ -142,14 +147,17 @@ const SongScreen: React.FC = () => {
         <Button title="Add Artist" onPress={handleAddArtist} />
       </View>
 
-      <View><Text style = {{color: 'grey'}}>Top Songs</Text></View>
+      <View><Text style={{ color: 'grey' }}>Top Songs</Text></View>
       {formData.favoriteSongs.length > 0 && renderSongTiles()}
-      <View><Text style = {{color: 'grey', paddingTop: 10}}>Top Artists</Text></View>
+      <View><Text style={{ color: 'grey', paddingTop: 10 }}>Top Artists</Text></View>
       {formData.favoriteAlbums.length > 0 && renderAlbumTiles()}
-      <View><Text style = {{color: 'grey', paddingTop: 10}}>Top Albums</Text></View>
+      <View><Text style={{ color: 'grey', paddingTop: 10 }}>Top Albums</Text></View>
       {formData.favoriteArtists.length > 0 && renderArtistTiles()}
 
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('TVScreen'); }} />
+      <Button title="Next" onPress={() => {
+        console.log(formData);
+        navigation.navigate('TVScreen', { formData });
+      }} />
     </ScrollView>
   );
 };
