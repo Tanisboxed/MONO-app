@@ -1,121 +1,149 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, Dimensions, Button, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+const screen = Dimensions.get('window');
+
+interface MusicItem {
+  id: string;
+  name: string;
+  images?: { url: string }[];
+  album?: { images: { url: string }[] };
+}
+
 interface FormData {
-  favoriteSongs: string[];
-  favoriteAlbums: string[];
-  favoriteArtists: string[];
+  favoriteTracks: MusicItem[];
+  favoriteAlbums: MusicItem[];
+  favoriteArtists: MusicItem[];
 }
 
 const SongScreen: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
-    favoriteSongs: [],
+    favoriteTracks: [],
     favoriteAlbums: [],
     favoriteArtists: [],
   });
 
   const navigation = useNavigation();
 
-  const [songInput, setSongInput] = useState<string>('');
+  const [trackInput, setTrackInput] = useState<string>('');
   const [albumInput, setAlbumInput] = useState<string>('');
   const [artistInput, setArtistInput] = useState<string>('');
 
-  const songSuggestions = ['Bohemian Rhapsody', 'Hotel California', 'Stairway to Heaven', 'Imagine', 'Hey Jude'];
-  const albumSuggestions = ['Album 1', 'Album 2', 'Album 3'];
-  const artistSuggestions = ['Artist 1', 'Artist 2', 'Artist 3'];
+  const [trackSuggestions, setTrackSuggestions] = useState<MusicItem[]>([]);
+  const [albumSuggestions, setAlbumSuggestions] = useState<MusicItem[]>([]);
+  const [artistSuggestions, setArtistSuggestions] = useState<MusicItem[]>([]);
 
-  const handleAddSong = () => {
-    if (formData.favoriteSongs.length < 5 && songInput && !formData.favoriteSongs.includes(songInput)) {
-      setFormData({
-        ...formData,
-        favoriteSongs: [...formData.favoriteSongs, songInput],
-      });
-      setSongInput('');
+  const handleAddFavorite = (type: keyof FormData, item: MusicItem) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [type]: [...prevFormData[type], item],
+    }));
+  };
+
+  const getSuggestions = async (type: string, query: string) => {
+    try {
+      const apiUrl = `https://powerful-distinctly-bat.ngrok-free.app/search/music?query=${query}&type=${type}`;
+      const response = await fetch(apiUrl);
+      const json = await response.json();
+      const top5Suggestions = json.items.slice(0, 5);
+      if (type === 'track') setTrackSuggestions(top5Suggestions);
+      if (type === 'album') setAlbumSuggestions(top5Suggestions);
+      if (type === 'artist') setArtistSuggestions(top5Suggestions);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  const handleAddAlbum = () => {
-    if (formData.favoriteAlbums.length < 5 && albumInput && !formData.favoriteAlbums.includes(albumInput)) {
-      setFormData({
-        ...formData,
-        favoriteAlbums: [...formData.favoriteAlbums, albumInput],
-      });
-      setAlbumInput('');
-    }
-  };
+  useEffect(() => {
+    if (trackInput.length > 2) getSuggestions('track', trackInput);
+    else setTrackSuggestions([]);
+  }, [trackInput]);
 
-  const handleAddArtist = () => {
-    if (formData.favoriteArtists.length < 5 && artistInput && !formData.favoriteArtists.includes(artistInput)) {
-      setFormData({
-        ...formData,
-        favoriteArtists: [...formData.favoriteArtists, artistInput],
-      });
-      setArtistInput('');
-    }
-  };
+  useEffect(() => {
+    if (albumInput.length > 2) getSuggestions('album', albumInput);
+    else setAlbumSuggestions([]);
+  }, [albumInput]);
 
-  const renderSuggestions = (inputValue: string, suggestions: string[], setInput: React.Dispatch<React.SetStateAction<string>>) => {
+  useEffect(() => {
+    if (artistInput.length > 2) getSuggestions('artist', artistInput);
+    else setArtistSuggestions([]);
+  }, [artistInput]);
+
+  const renderSuggestions = (type: string, suggestions: MusicItem[]) => {
     return (
-      <View style={styles.suggestionsContainer}>
-        {suggestions
-          .filter((item) => item.toLowerCase().includes(inputValue.toLowerCase()))
-          .map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.suggestion}
-              onPress={() => setInput(item)}
-            >
-              <Text style={styles.suggestionText}>{item}</Text>
-            </TouchableOpacity>
-          ))}
-      </View>
+      <FlatList
+        data={suggestions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.suggestion}
+            onPress={() => {
+              if (type === 'track') {
+                setTrackInput('');
+                handleAddFavorite('favoriteTracks', item);
+              }
+              if (type === 'album') {
+                setAlbumInput('');
+                handleAddFavorite('favoriteAlbums', item);
+              }
+              if (type === 'artist') {
+                setArtistInput('');
+                handleAddFavorite('favoriteArtists', item);
+              }
+            }}
+          >
+            <Image
+              source={{ uri: item.album?.images?.[0]?.url || item.images?.[0]?.url }}
+              style={styles.posterImage}
+              resizeMode="cover"
+            />
+            <Text style={styles.suggestionText}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
+        style={styles.suggestionsContainer}
+        showsVerticalScrollIndicator={false}
+      />
     );
   };
 
-  const renderTiles = (items: string[], renderItem: (item: string, index: number) => React.ReactNode) => {
+  const renderHorizontalList = (title: string, items: MusicItem[]) => {
     return (
-      <View style={styles.tileContainer}>
-        {items.map((item, index) => (
-          <View key={index} style={styles.tile}>
-            <Image source={require('../../assets/movieposter/poster.png')} style={styles.posterImage} resizeMode="cover" />
-            {renderItem(item, index)}
-          </View>
-        ))}
+      <View style={styles.horizontalContainer}>
+        <Text style={styles.label}>{title}</Text>
+        <FlatList
+          horizontal
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.movieTile}>
+              <Image
+                source={{ uri: item.album?.images?.[0]?.url || item.images?.[0]?.url }}
+                style={styles.posterImage}
+                resizeMode="cover"
+              />
+              <Text style={styles.movieText}>{item.name}</Text>
+            </View>
+          )}
+          contentContainerStyle={styles.horizontalList}
+          showsHorizontalScrollIndicator={false}
+        />
       </View>
     );
-  };
-
-  const renderSongTiles = () => {
-    return renderTiles(formData.favoriteSongs, (song, index) => (
-      <Text key={index} style={styles.tileText}>{song}</Text>
-    ));
-  };
-
-  const renderAlbumTiles = () => {
-    return renderTiles(formData.favoriteAlbums, (album, index) => (
-      <Text key={index} style={styles.tileText}>{album}</Text>
-    ));
-  };
-
-  const renderArtistTiles = () => {
-    return renderTiles(formData.favoriteArtists, (artist, index) => (
-      <Text key={index} style={styles.tileText}>{artist}</Text>
-    ));
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Top 5 Songs:</Text>
+        <Text style={styles.label}>Top 5 Tracks:</Text>
         <TextInput
           style={styles.input}
-          value={songInput}
-          onChangeText={(text) => setSongInput(text)}
-          placeholder="Type to search songs..."
+          value={trackInput}
+          onChangeText={(text) => setTrackInput(text)}
+          placeholder="Type to search tracks..."
         />
-        {songInput.length > 0 && renderSuggestions(songInput, songSuggestions, setSongInput)}
-        <Button title="Add Song" onPress={handleAddSong} />
+        {trackInput.length > 2 && renderSuggestions('track', trackSuggestions)}
+        {formData.favoriteTracks.length > 0 && renderHorizontalList('Favorite Tracks', formData.favoriteTracks)}
       </View>
 
       <View style={styles.inputContainer}>
@@ -126,8 +154,8 @@ const SongScreen: React.FC = () => {
           onChangeText={(text) => setAlbumInput(text)}
           placeholder="Type to search albums..."
         />
-        {albumInput.length > 0 && renderSuggestions(albumInput, albumSuggestions, setAlbumInput)}
-        <Button title="Add Album" onPress={handleAddAlbum} />
+        {albumInput.length > 2 && renderSuggestions('album', albumSuggestions)}
+        {formData.favoriteAlbums.length > 0 && renderHorizontalList('Favorite Albums', formData.favoriteAlbums)}
       </View>
 
       <View style={styles.inputContainer}>
@@ -138,33 +166,28 @@ const SongScreen: React.FC = () => {
           onChangeText={(text) => setArtistInput(text)}
           placeholder="Type to search artists..."
         />
-        {artistInput.length > 0 && renderSuggestions(artistInput, artistSuggestions, setArtistInput)}
-        <Button title="Add Artist" onPress={handleAddArtist} />
+        {artistInput.length > 2 && renderSuggestions('artist', artistSuggestions)}
+        {formData.favoriteArtists.length > 0 && renderHorizontalList('Favorite Artists', formData.favoriteArtists)}
       </View>
 
-      <View><Text style = {{color: 'grey'}}>Top Songs</Text></View>
-      {formData.favoriteSongs.length > 0 && renderSongTiles()}
-      <View><Text style = {{color: 'grey', paddingTop: 10}}>Top Artists</Text></View>
-      {formData.favoriteAlbums.length > 0 && renderAlbumTiles()}
-      <View><Text style = {{color: 'grey', paddingTop: 10}}>Top Albums</Text></View>
-      {formData.favoriteArtists.length > 0 && renderArtistTiles()}
-
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('TVScreen'); }} />
+      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('books'); }} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flexGrow: 1,
     backgroundColor: 'black',
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
   inputContainer: {
-    marginBottom: 15,
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 10,
     color: 'white',
   },
   input: {
@@ -177,15 +200,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   suggestionsContainer: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginTop: 5,
-    maxHeight: 150,
-    overflow: 'scroll',
+    maxHeight: screen.height / 2,
   },
   suggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
@@ -193,32 +212,28 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 16,
+    marginLeft: 10,
+    color: 'white',
   },
-  tileContainer: {
-    marginTop: 20,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  horizontalContainer: {
+    marginBottom: 20,
   },
-  tile: {
-    width: '45%',
-    margin: 9,
-    height: 200,
-    backgroundColor: 'grey',
-    borderRadius: 15,
+  horizontalList: {
+    paddingHorizontal: 10,
+  },
+  movieTile: {
+    marginRight: 10,
     alignItems: 'center',
-    flexDirection: 'column', // Ensure items are aligned horizontally
   },
   posterImage: {
-    width: '100%', // Adjust as needed
-    height: '80%', // Adjust as needed
+    width: 120,
+    height: 120,
     borderRadius: 5,
-    marginBottom: 7,
+    marginBottom: 5,
   },
-  tileText: {
-    fontSize: 20,
-    textAlign: 'center',
-    flex: 1, // Ensure text takes remaining space
-    color: 'white'
+  movieText: {
+    fontSize: 16,
+    color: 'white',
   },
 });
 

@@ -117,7 +117,7 @@ const MovieScreen: React.FC = () => {
           {renderFavoriteMovies()}
         </View>
       )}
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('SongScreen'); }} />
+      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('TVScreen'); }} />
     </View>
   );
 };
