@@ -12,6 +12,11 @@ const MovieScreen: React.FC = () => {
 
   const navigation = useNavigation();
 
+  const handleSubmit = () => {
+    console.log(formData.favoriteMovies); 
+    navigation.navigate('TVScreen', { moviesProfile: formData.favoriteMovies });
+};
+
   const [movieInput, setMovieInput] = useState<string>('');
   const [movieSuggestions, setMovieSuggestions] = useState<Movie[]>([]);
 
@@ -108,7 +113,7 @@ const MovieScreen: React.FC = () => {
           {renderFavoriteMovies()}
         </View>
       )}
-      <Button title="Next" onPress={() => { console.log(formData.favoriteMovies); navigation.navigate('TVShowScreen', { moviesProfile: formData.favoriteMovies }); }} />
+      <Button title="Next" onPress={handleSubmit} />
     </View>
   );
 };

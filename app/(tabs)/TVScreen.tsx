@@ -9,12 +9,12 @@ const screen = Dimensions.get('window');
 
 const TVShowScreen: React.FC = () => {
   const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[] } }, 'params'>>();
-  const { moviesProfile } = route.params;
+  const navigation = useNavigation();
+
+  const { moviesProfile = [] } = route.params || {}; // Added default value and safe access
   const [formData, setFormData] = useState<TVFormData>({
     favoriteTVShows: [],
   });
-
-  const navigation = useNavigation();
 
   const [tvShowInput, setTVShowInput] = useState<string>('');
   const [tvShowSuggestions, setTVShowSuggestions] = useState<TVShow[]>([]);
@@ -112,7 +112,7 @@ const TVShowScreen: React.FC = () => {
           {renderFavoriteTVShows()}
         </View>
       )}
-      <Button title="Next" onPress={() => { console.log(formData.favoriteTVShows); navigation.navigate('MusicScreen', { moviesProfile, tvProfile: formData.favoriteTVShows }); }} />
+      <Button title="Next" onPress={() => { console.log(formData.favoriteTVShows); navigation.navigate('SongScreen', { moviesProfile, tvProfile: formData.favoriteTVShows }); }} />
     </View>
   );
 };
