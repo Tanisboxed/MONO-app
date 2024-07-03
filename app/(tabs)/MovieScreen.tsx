@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Dimensions, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Movie, MoviesFormData } from '../types';
 
 const screen = Dimensions.get('window');
 
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string | null;
-}
-
-interface FormData {
-  favoriteMovies: Movie[];
-}
-
 const MovieScreen: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<MoviesFormData>({
     favoriteMovies: [],
   });
 
@@ -117,7 +108,7 @@ const MovieScreen: React.FC = () => {
           {renderFavoriteMovies()}
         </View>
       )}
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('TVScreen'); }} />
+      <Button title="Next" onPress={() => { console.log(formData.favoriteMovies); navigation.navigate('TVShowScreen', { moviesProfile: formData.favoriteMovies }); }} />
     </View>
   );
 };

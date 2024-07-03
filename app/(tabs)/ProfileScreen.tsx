@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Image, ScrollView, TextInput, TouchableOpacity } from 'react-native';
-import { rgbaColor } from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
-
-const placeholderImage = require('../../assets/movieposter/poster.png'); // Make sure to add a placeholder image in the assets folder
+import { View, Text, FlatList, StyleSheet, Image, ScrollView, TextInput, Dimensions, TouchableOpacity } from 'react-native';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { Movie } from '../types'; // Import the interface
+import { TVShow } from '../types'; // Import the interface
+import placeholderImage from '../../assets/movieposter/poster.png'; // Import your placeholder image
 
 const favoriteArtists = [
   { name: 'Arctic Monkeys', image: placeholderImage },
@@ -15,15 +16,6 @@ const favoriteArtists = [
 const favoriteSongs = [
   { title: 'Buffalo Replaced', artist: 'Mitski', image: placeholderImage },
   { title: 'Science Fiction', artist: 'Arctic Monkeys', image: placeholderImage },
-  // Add more songs here
-];
-
-const favoriteMovies = [
-  { title: 'Movie One', image: placeholderImage },
-  { title: 'Movie Two', image: placeholderImage },
-  { title: 'Movie Three', image: placeholderImage },
-  { title: 'Movie Four', image: placeholderImage },
-  // Add more movies here
 ];
 
 const renderArtistItem = ({ item, index }: { item: any, index: number }) => (
@@ -42,13 +34,10 @@ const renderSongItem = ({ item }: { item: any }) => (
   </View>
 );
 
-const renderMovieItem = ({ item }: { item: any }) => (
-  <View style={styles.movieTile}>
-    <Image source={item.image} style={styles.movieImage} resizeMode="cover" />
-  </View>
-);
-
 const ProfileScreen: React.FC = () => {
+  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[], tvProfile: TVShow[] } }, 'params'>>();
+  const { moviesProfile, tvProfile } = route.params;
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -62,14 +51,12 @@ const ProfileScreen: React.FC = () => {
 
       <View style={styles.bioContainer}>
         <Text style={styles.bioLabel}>Bio</Text>
-        <TextInput style={styles.bioInput} placeholder="Add a bio" placeholderTextColor="#888" />
-        <Text style={styles.bioLabel}>Quote</Text>
-        <TextInput style={styles.bioInput} placeholder="Add a quote" placeholderTextColor="#888" />
+        <TextInput style={styles.bioInput} multiline placeholder="Tell us about yourself..." placeholderTextColor="#aaa" />
       </View>
 
       <View style={styles.interestsContainer}>
         <TouchableOpacity style={styles.interestButton}>
-          <Text style={styles.interestText}>Interests</Text>
+          <Text style={styles.interestText}>Movies</Text>
         </TouchableOpacity>
       </View>
 
@@ -77,29 +64,45 @@ const ProfileScreen: React.FC = () => {
       <FlatList
         data={favoriteArtists}
         renderItem={renderArtistItem}
-        keyExtractor={(item) => item.name}
-        numColumns={2}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.artistList}
+        keyExtractor={(item, index) => index.toString()}
+        numColumns={7}
+        style={styles.artistList}
       />
 
-      <Text style={styles.category}>Top songs</Text>
-      <View style={styles.list}>
-        {favoriteSongs.map((item, index) => (
-          <View key={index}>
-            {renderSongItem({ item })}
-          </View>
-        ))}
-      </View>
-
-      <Text style={styles.category}>Movies I love</Text>
+      <Text style={styles.category}>Songs I fw?</Text>
       <FlatList
-        data={favoriteMovies}
-        renderItem={({ item }) => renderMovieItem({ item })}
-        keyExtractor={(item) => item.title}
+        data={favoriteSongs}
+        renderItem={renderSongItem}
+        keyExtractor={(item, index) => index.toString()}
+        style={styles.songList}
+      />
+
+      <Text style={styles.category}>Movies I fw?</Text>
+      <FlatList
+        data={moviesProfile}
+        renderItem={({ item }) => (
+          <View style={styles.movieTile}>
+            <Image source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }} style={styles.movieImage} resizeMode="cover" />
+            <Text style={styles.movieTitle}>{item.title}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
         horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carousel}
+        style={styles.movieList}
+      />
+
+      <Text style={styles.category}>Shows I fw?</Text>
+      <FlatList
+        data={tvProfile}
+        renderItem={({ item }) => (
+          <View style={styles.movieTile}>
+            <Image source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }} style={styles.movieImage} resizeMode="cover" />
+            <Text style={styles.movieTitle}>{item.name}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        horizontal
+        style={styles.movieList}
       />
     </ScrollView>
   );
@@ -111,31 +114,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   header: {
-    position: 'relative',
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
   },
   backgroundImage: {
     width: '100%',
-    height: 200,
+    height: '100%',
     position: 'absolute',
+    opacity: 0.3,
   },
   profileInfo: {
-    marginTop: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: 'white',
-    marginBottom: 10,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   profileName: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
     color: 'white',
   },
   profileHandle: {
@@ -143,8 +143,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   bioContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    padding: 20,
   },
   bioLabel: {
     fontSize: 18,
@@ -152,102 +151,93 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   bioInput: {
-    backgroundColor: '#333',
-    color: 'white',
-    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: 'white',
     borderRadius: 5,
-    marginBottom: 10,
+    padding: 10,
+    fontSize: 16,
+    marginBottom: 15,
+    color: 'black',
   },
   interestsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
   },
   interestButton: {
-    padding: 10,
-    backgroundColor: '#555',
-    borderRadius: 5,
+    paddingHorizontal: 30,
+    paddingVertical: 10,
+    backgroundColor: 'white',
+    borderRadius: 20,
   },
   interestText: {
-    color: 'white',
+    fontSize: 16,
+    color: 'black',
   },
   category: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 18,
     color: 'white',
-    marginVertical: 10,
+    marginBottom: 10,
     marginLeft: 20,
   },
-  carousel: {
-    paddingVertical: 10,
-  },
-  list: {
-    paddingHorizontal: 20,
+  artistList: {
     marginBottom: 20,
   },
   artistTile: {
-    flex: 1,
-    marginRight: 10,
-    marginBottom: 10,
-    alignItems: 'center',
+    marginHorizontal: 5,
   },
   artistTileLarge: {
-    flex: 2,
-    marginRight: 10,
+    width: 100,
+    height: 100,
   },
   artistTileSmall: {
-    flex: 1,
+    width: 60,
+    height: 60,
   },
   artistImage: {
     width: '100%',
-    height: 100,
+    height: '100%',
     borderRadius: 10,
+  },
+  songList: {
+    marginBottom: 20,
   },
   songTile: {
-    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#444',
-    borderRadius: 10,
+    marginBottom: 10,
   },
   songImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 5,
-    marginRight: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 10,
   },
   songInfo: {
-    flex: 1,
+    marginLeft: 10,
   },
   songTitle: {
     fontSize: 16,
     color: 'white',
-    fontWeight: 'bold',
   },
   songArtist: {
     fontSize: 14,
     color: 'white',
   },
+  movieList: {
+    marginBottom: 20,
+  },
   movieTile: {
-    width: 120,
-    marginRight: 10,
-    alignItems: 'center',
+    marginHorizontal: 10,
   },
   movieImage: {
-    width: '100%',
+    width: 100,
     height: 150,
-    borderRadius: 15,
-    marginBottom: 10,
+    borderRadius: 10,
   },
-  tileText: {
+  movieTitle: {
     fontSize: 14,
-    textAlign: 'center',
     color: 'white',
-  },
-  artistList: {
-    paddingHorizontal: 10,
+    marginTop: 5,
   },
 });
 

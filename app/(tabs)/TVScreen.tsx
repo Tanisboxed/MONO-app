@@ -1,22 +1,16 @@
-// app/screens/TVShowScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Dimensions, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { Movie } from '../types';
+import { TVShow, TVFormData } from '../types';
 
 const screen = Dimensions.get('window');
 
-interface TVShow {
-  id: number;
-  name: string;
-  poster_path: string | null;
-}
-
-interface FormData {
-  favoriteTVShows: TVShow[];
-}
-
 const TVShowScreen: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[] } }, 'params'>>();
+  const { moviesProfile } = route.params;
+  const [formData, setFormData] = useState<TVFormData>({
     favoriteTVShows: [],
   });
 
@@ -43,7 +37,7 @@ const TVShowScreen: React.FC = () => {
       let apiUrl = `https://powerful-distinctly-bat.ngrok-free.app/search/shows?query=${tvShowInput}&type=tv`;
       const response = await fetch(apiUrl);
       const json = await response.json();
-      const top5TVShows: TVShow[] = json.slice(0, 10);
+      const top5TVShows: TVShow[] = json.slice(0, 5);
       setTVShowSuggestions(top5TVShows);
     } catch (err) {
       console.log(err);
@@ -86,13 +80,13 @@ const TVShowScreen: React.FC = () => {
         data={formData.favoriteTVShows}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.tvShowTile}>
+          <View style={styles.movieTile}>
             <Image
               source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
               style={styles.posterImage}
               resizeMode="cover"
             />
-            <Text style={styles.tvShowText}>{item.name}</Text>
+            <Text style={styles.movieText}>{item.name}</Text>
           </View>
         )}
         style={styles.suggestionsContainer}
@@ -114,11 +108,11 @@ const TVShowScreen: React.FC = () => {
         {tvShowInput.length > 0 && renderTVShowSuggestions()}
       </View>
       {formData.favoriteTVShows.length > 0 && (
-        <View style={styles.favoriteTVShowsContainer}>
+        <View style={styles.favoriteMoviesContainer}>
           {renderFavoriteTVShows()}
         </View>
       )}
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('SongScreen'); }} />
+      <Button title="Next" onPress={() => { console.log(formData.favoriteTVShows); navigation.navigate('MusicScreen', { moviesProfile, tvProfile: formData.favoriteTVShows }); }} />
     </View>
   );
 };
@@ -162,11 +156,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: 'white',
   },
-  favoriteTVShowsContainer: {
+  favoriteMoviesContainer: {
     flex: 1,
     marginTop: 20,
   },
-  tvShowTile: {
+  movieTile: {
     width: '100%',
     marginBottom: 10,
     flexDirection: 'row',
@@ -178,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginRight: 10,
   },
-  tvShowText: {
+  movieText: {
     fontSize: 16,
     color: 'white',
   },
