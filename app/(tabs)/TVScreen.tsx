@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -20,19 +21,41 @@ const TVShowsScreen: React.FC = () => {
     favoriteTVShows: initialFormData.favoriteTVShows || [],
   });
 
-  const [tvShowInput, setTVShowInput] = useState<string>('');
-  const tvShowSuggestions = ['TV Show One', 'TV Show Two', 'TV Show Three'];
+=======
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, Dimensions, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { Movie, TVShow, TVFormData } from '../types';
 
-  const handleAddTVShow = () => {
-    if (formData.favoriteTVShows.length < 5 && tvShowInput && !formData.favoriteTVShows.includes(tvShowInput)) {
+const screen = Dimensions.get('window');
+
+const TVShowScreen: React.FC = () => {
+  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[] } }, 'params'>>();
+  const navigation = useNavigation();
+
+  const { moviesProfile = [] } = route.params || {};
+  const [formData, setFormData] = useState<TVFormData>({
+    favoriteTVShows: [],
+  });
+
+>>>>>>> 63bdcc718265f9db99a02d3efd28a72599c05089
+  const [tvShowInput, setTVShowInput] = useState<string>('');
+  const [tvShowSuggestions, setTVShowSuggestions] = useState<TVShow[]>([]);
+
+  const handleAddTVShow = (tvShow: TVShow) => {
+    if (
+      formData.favoriteTVShows.length < 5 &&
+      !formData.favoriteTVShows.find((m) => m.id === tvShow.id)
+    ) {
       setFormData({
         ...formData,
-        favoriteTVShows: [...formData.favoriteTVShows, tvShowInput],
+        favoriteTVShows: [...formData.favoriteTVShows, tvShow],
       });
       setTVShowInput('');
     }
   };
 
+<<<<<<< HEAD
   const renderSuggestions = (inputValue: string, suggestions: string[], setInput: React.Dispatch<React.SetStateAction<string>>) => {
     return (
       <View style={styles.suggestionsContainer}>
@@ -48,6 +71,68 @@ const TVShowsScreen: React.FC = () => {
             </TouchableOpacity>
           ))}
       </View>
+=======
+  const getTVShows = async () => {
+    try {
+      let apiUrl = `https://b353-122-177-101-132.ngrok-free.app/search/shows?query=${tvShowInput}&type=tv`;
+      const response = await fetch(apiUrl);
+      const json = await response.json();
+      const top5TVShows: TVShow[] = json.slice(0, 5);
+      setTVShowSuggestions(top5TVShows);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (tvShowInput.length > 0) {
+      getTVShows();
+    }
+  }, [tvShowInput]);
+
+  const renderTVShowSuggestions = () => {
+    return (
+      <FlatList
+        data={tvShowSuggestions.filter(tvShow => tvShow.name.toLowerCase().includes(tvShowInput.toLowerCase()) && tvShow.poster_path !== null)}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.suggestion}
+            onPress={() => handleAddTVShow(item)}
+          >
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+              style={styles.posterImage}
+              resizeMode="cover"
+            />
+            <Text style={styles.suggestionText}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
+        style={styles.suggestionsContainer}
+        showsVerticalScrollIndicator={false}
+      />
+    );
+  };
+
+  const renderFavoriteTVShows = () => {
+    return (
+      <FlatList
+        data={formData.favoriteTVShows}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.movieTile}>
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+              style={styles.posterImage}
+              resizeMode="cover"
+            />
+            <Text style={styles.movieText}>{item.name}</Text>
+          </View>
+        )}
+        style={styles.suggestionsContainer}
+        showsVerticalScrollIndicator={false}
+      />
+>>>>>>> 63bdcc718265f9db99a02d3efd28a72599c05089
     );
   };
 
@@ -71,7 +156,7 @@ const TVShowsScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Top 5 TV Shows:</Text>
         <TextInput
@@ -80,6 +165,7 @@ const TVShowsScreen: React.FC = () => {
           onChangeText={(text) => setTVShowInput(text)}
           placeholder="Type to search TV shows..."
         />
+<<<<<<< HEAD
         {tvShowInput.length > 0 && renderSuggestions(tvShowInput, tvShowSuggestions, setTVShowInput)}
         <Button title="Add TV Show" onPress={handleAddTVShow} />
       </View>
@@ -92,11 +178,23 @@ const TVShowsScreen: React.FC = () => {
         navigation.navigate('YoutubeScreen', { formData });
       }} />
     </ScrollView>
+=======
+        {tvShowInput.length > 0 && renderTVShowSuggestions()}
+      </View>
+      {formData.favoriteTVShows.length > 0 && (
+        <View style={styles.favoriteMoviesContainer}>
+          {renderFavoriteTVShows()}
+        </View>
+      )}
+      <Button title="Next" onPress={() => { console.log(formData.favoriteTVShows); navigation.navigate('SongScreen', { moviesProfile, tvProfile: formData.favoriteTVShows }); }} />
+    </View>
+>>>>>>> 63bdcc718265f9db99a02d3efd28a72599c05089
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
     backgroundColor: 'black',
   },
@@ -118,15 +216,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   suggestionsContainer: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginTop: 5,
-    maxHeight: 150,
-    overflow: 'scroll',
+    maxHeight: screen.height / 2,
   },
   suggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
@@ -134,33 +228,33 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 16,
+    marginLeft: 10,
+    color: 'white',
   },
-  tileContainer: {
+  favoriteMoviesContainer: {
+    flex: 1,
     marginTop: 20,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
   },
-  tile: {
-    width: '45%',
-    margin: 9,
-    height: 200,
-    backgroundColor: 'grey',
-    borderRadius: 15,
+  movieTile: {
+    width: '100%',
+    marginBottom: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    flexDirection: 'column', // Ensure items are aligned horizontally
   },
   posterImage: {
-    width: '100%', // Adjust as needed
-    height: '80%', // Adjust as needed
+    width: 80,
+    height: 120,
     borderRadius: 5,
-    marginBottom: 7,
+    marginRight: 10,
   },
-  tileText: {
-    fontSize: 20,
-    textAlign: 'center',
-    flex: 1, // Ensure text takes remaining space
-    color: 'white'
+  movieText: {
+    fontSize: 16,
+    color: 'white',
   },
 });
 
+<<<<<<< HEAD
 export default TVShowsScreen;
+=======
+export default TVShowScreen;
+>>>>>>> 63bdcc718265f9db99a02d3efd28a72599c05089
