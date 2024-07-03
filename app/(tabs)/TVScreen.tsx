@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Dimensions, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { Movie } from '../types';
-import { TVShow, TVFormData } from '../types';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { Movie, TVShow, TVFormData } from '../types';
 
 const screen = Dimensions.get('window');
 
@@ -11,7 +9,7 @@ const TVShowScreen: React.FC = () => {
   const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[] } }, 'params'>>();
   const navigation = useNavigation();
 
-  const { moviesProfile = [] } = route.params || {}; // Added default value and safe access
+  const { moviesProfile = [] } = route.params || {};
   const [formData, setFormData] = useState<TVFormData>({
     favoriteTVShows: [],
   });
@@ -34,7 +32,7 @@ const TVShowScreen: React.FC = () => {
 
   const getTVShows = async () => {
     try {
-      let apiUrl = `https://powerful-distinctly-bat.ngrok-free.app/search/shows?query=${tvShowInput}&type=tv`;
+      let apiUrl = `https://b353-122-177-101-132.ngrok-free.app/search/shows?query=${tvShowInput}&type=tv`;
       const response = await fetch(apiUrl);
       const json = await response.json();
       const top5TVShows: TVShow[] = json.slice(0, 5);

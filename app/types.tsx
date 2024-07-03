@@ -14,6 +14,7 @@ export interface MusicItem {
     name: string;
     images?: { url: string }[];
     album?: { images: { url: string }[] };
+    artist?: string;
   }
   
 export interface MusicFormData {

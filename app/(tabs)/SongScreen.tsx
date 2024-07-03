@@ -8,8 +8,6 @@ import { TVShow } from '../types';
 
 const screen = Dimensions.get('window');
 
-
-
 const SongScreen: React.FC = () => {
   const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[], tvProfile: TVShow[] } }, 'params'>>();
   const { moviesProfile, tvProfile } = route.params;
@@ -29,7 +27,7 @@ const SongScreen: React.FC = () => {
   const [albumSuggestions, setAlbumSuggestions] = useState<MusicItem[]>([]);
   const [artistSuggestions, setArtistSuggestions] = useState<MusicItem[]>([]);
 
-  const handleAddFavorite = (type: keyof FormData, item: MusicItem) => {
+  const handleAddFavorite = (type: keyof MusicFormData, item: MusicItem) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       [type]: [...prevFormData[type], item],
@@ -38,7 +36,7 @@ const SongScreen: React.FC = () => {
 
   const getSuggestions = async (type: string, query: string) => {
     try {
-      const apiUrl = `https://powerful-distinctly-bat.ngrok-free.app/search/music?query=${query}&type=${type}`;
+      const apiUrl = `https://b353-122-177-101-132.ngrok-free.app/search/music?query=${query}&type=${type}`;
       const response = await fetch(apiUrl);
       const json = await response.json();
       const top5Suggestions = json.items.slice(0, 5);
@@ -165,7 +163,13 @@ const SongScreen: React.FC = () => {
         {formData.favoriteArtists.length > 0 && renderHorizontalList('Favorite Artists', formData.favoriteArtists)}
       </View>
 
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('books', { moviesProfile, tvProfile, tracksProfile: formData.favoriteTracks, albumsProfile: formData.favoriteAlbums, artistsProfile: formData.favoriteArtists }); }} />
+      <Button 
+        title="Next" 
+        onPress={() => { 
+          console.log(formData); 
+          navigation.navigate('BookScreen', { moviesProfile, tvProfile, tracksProfile: formData.favoriteTracks, albumsProfile: formData.favoriteAlbums, artistsProfile: formData.favoriteArtists }); 
+        }} 
+      />
     </ScrollView>
   );
 };
