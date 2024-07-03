@@ -1,24 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Dimensions, Button, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { MusicItem, MusicFormData } from '../types';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { Movie } from '../types';
+import { TVShow } from '../types';
 
 const screen = Dimensions.get('window');
 
-interface MusicItem {
-  id: string;
-  name: string;
-  images?: { url: string }[];
-  album?: { images: { url: string }[] };
-}
 
-interface FormData {
-  favoriteTracks: MusicItem[];
-  favoriteAlbums: MusicItem[];
-  favoriteArtists: MusicItem[];
-}
 
 const SongScreen: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[], tvProfile: TVShow[] } }, 'params'>>();
+  const { moviesProfile, tvProfile } = route.params;
+  const [formData, setFormData] = useState<MusicFormData>({
     favoriteTracks: [],
     favoriteAlbums: [],
     favoriteArtists: [],
@@ -170,7 +165,7 @@ const SongScreen: React.FC = () => {
         {formData.favoriteArtists.length > 0 && renderHorizontalList('Favorite Artists', formData.favoriteArtists)}
       </View>
 
-      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('books'); }} />
+      <Button title="Next" onPress={() => { console.log(formData); navigation.navigate('books', { moviesProfile, tvProfile, tracksProfile: formData.favoriteTracks, albumsProfile: formData.favoriteAlbums, artistsProfile: formData.favoriteArtists }); }} />
     </ScrollView>
   );
 };

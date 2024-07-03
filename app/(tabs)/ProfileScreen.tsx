@@ -3,15 +3,9 @@ import { View, Text, FlatList, StyleSheet, Image, ScrollView, TextInput, Dimensi
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { Movie } from '../types'; // Import the interface
 import { TVShow } from '../types'; // Import the interface
+import { MusicItem } from '../types'; // Import the interface
+import { Book } from '../types';
 import placeholderImage from '../../assets/movieposter/poster.png'; // Import your placeholder image
-
-const favoriteArtists = [
-  { name: 'Arctic Monkeys', image: placeholderImage },
-  { name: 'Artist Two', image: placeholderImage },
-  { name: 'Artist Three', image: placeholderImage },
-  { name: 'Artist Four', image: placeholderImage },
-  { name: 'Artist Five', image: placeholderImage },
-];
 
 const favoriteSongs = [
   { title: 'Buffalo Replaced', artist: 'Mitski', image: placeholderImage },
@@ -35,8 +29,8 @@ const renderSongItem = ({ item }: { item: any }) => (
 );
 
 const ProfileScreen: React.FC = () => {
-  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[], tvProfile: TVShow[] } }, 'params'>>();
-  const { moviesProfile, tvProfile } = route.params;
+  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[], tvProfile: TVShow[], tracksProfile: MusicItem[], albumsProfile: MusicItem[], artistsProfile: MusicItem[], booksProfile: Book[] } }, 'params'>>();
+  const { moviesProfile, tvProfile, tracksProfile, albumsProfile, artistsProfile, booksProfile } = route.params;
 
   return (
     <ScrollView style={styles.container}>
@@ -62,7 +56,7 @@ const ProfileScreen: React.FC = () => {
 
       <Text style={styles.category}>Artists I fw?</Text>
       <FlatList
-        data={favoriteArtists}
+        data={artistsProfile}
         renderItem={renderArtistItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={7}
@@ -71,7 +65,7 @@ const ProfileScreen: React.FC = () => {
 
       <Text style={styles.category}>Songs I fw?</Text>
       <FlatList
-        data={favoriteSongs}
+        data={tracksProfile}
         renderItem={renderSongItem}
         keyExtractor={(item, index) => index.toString()}
         style={styles.songList}
@@ -104,7 +98,21 @@ const ProfileScreen: React.FC = () => {
         horizontal
         style={styles.movieList}
       />
-    </ScrollView>
+
+      <Text style={styles.category}>Books I fw?</Text>
+        <FlatList
+          data={booksProfile}
+          renderItem={({ item }) => (
+            <View style={styles.movieTile}>
+              {/* <Image source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }} style={styles.movieImage} resizeMode="cover" /> */}
+              <Text style={styles.movieTitle}>{item.name}</Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          style={styles.movieList}
+        />
+      </ScrollView>
   );
 };
 
