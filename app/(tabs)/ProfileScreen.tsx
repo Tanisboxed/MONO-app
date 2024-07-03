@@ -1,36 +1,39 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Image, ScrollView, TextInput, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { Movie } from '../types'; // Import the interface
-import { TVShow } from '../types'; // Import the interface
-import { MusicItem } from '../types'; // Import the interface
-import { Book } from '../types';
+import { Movie, TVShow, MusicItem } from '../types'; // Import the interfaces
 import placeholderImage from '../../assets/movieposter/poster.png'; // Import your placeholder image
 
 const favoriteSongs = [
   { title: 'Buffalo Replaced', artist: 'Mitski', image: placeholderImage },
   { title: 'Science Fiction', artist: 'Arctic Monkeys', image: placeholderImage },
 ];
-
-const renderArtistItem = ({ item, index }: { item: any, index: number }) => (
+const renderArtistItem = ({ item, index }: { item: MusicItem, index: number }) => (
   <View style={[styles.artistTile, (index % 7 === 0 || index % 7 === 3 || index % 7 === 4) ? styles.artistTileLarge : styles.artistTileSmall]}>
-    <Image source={item.image} style={styles.artistImage} resizeMode="cover" />
+    <Image source={item.images ? { uri: item.images[0].url } : placeholderImage} style={styles.artistImage} resizeMode="cover" />
   </View>
 );
 
-const renderSongItem = ({ item }: { item: any }) => (
+const renderSongItem = ({ item }: { item: MusicItem }) => (
   <View style={styles.songTile}>
-    <Image source={item.image} style={styles.songImage} resizeMode="cover" />
+    <Image source={item.images ? { uri: item.images[0].url } : placeholderImage} style={styles.songImage} resizeMode="cover" />
     <View style={styles.songInfo}>
-      <Text style={styles.songTitle}>{item.title}</Text>
+      <Text style={styles.songTitle}>{item.name}</Text>
       <Text style={styles.songArtist}>{item.artist}</Text>
     </View>
   </View>
 );
 
 const ProfileScreen: React.FC = () => {
-  const route = useRoute<RouteProp<{ params: { moviesProfile: Movie[], tvProfile: TVShow[], tracksProfile: MusicItem[], albumsProfile: MusicItem[], artistsProfile: MusicItem[], booksProfile: Book[] } }, 'params'>>();
-  const { moviesProfile, tvProfile, tracksProfile, albumsProfile, artistsProfile, booksProfile } = route.params;
+  const route = useRoute<RouteProp<{ params: { moviesProfile?: Movie[], tvProfile?: TVShow[], tracksProfile?: MusicItem[], albumsProfile?: MusicItem[], artistsProfile?: MusicItem[]} }, 'params'>>();
+
+  const {
+    moviesProfile = [],
+    tvProfile = [],
+    tracksProfile = [],
+    albumsProfile = [],
+    artistsProfile = [],
+  } = route.params || {};
 
   return (
     <ScrollView style={styles.container}>
@@ -99,20 +102,19 @@ const ProfileScreen: React.FC = () => {
         style={styles.movieList}
       />
 
-      <Text style={styles.category}>Books I fw?</Text>
-        <FlatList
-          data={booksProfile}
-          renderItem={({ item }) => (
-            <View style={styles.movieTile}>
-              {/* <Image source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }} style={styles.movieImage} resizeMode="cover" /> */}
-              <Text style={styles.movieTitle}>{item.name}</Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          style={styles.movieList}
-        />
-      </ScrollView>
+      {/* <Text style={styles.category}>Books I fw?</Text>
+      <FlatList
+        data={booksProfile}
+        renderItem={({ item }) => (
+          <View style={styles.movieTile}>
+            <Text style={styles.movieTitle}>{item.name}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        horizontal
+        style={styles.movieList}
+      /> */}
+    </ScrollView>
   );
 };
 
