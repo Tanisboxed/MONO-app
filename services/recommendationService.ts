@@ -2,11 +2,9 @@ import OpenAI from 'openai';
 import { spotifyService } from './spotifyApi';
 import { OPENAI_API_KEY } from '../constants/ApiKeys';
 
-// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
-
 interface RecommendationInput {
   userId: string;
   timeRange?: 'short_term' | 'medium_term' | 'long_term';
@@ -28,12 +26,10 @@ class RecommendationService {
       id: track.id
     }));
   }
-
   private async getUserTopArtists({ userId, timeRange = 'medium_term', limit = 5 }: RecommendationInput): Promise<string[]> {
     const topArtists = await spotifyService.getUserTopArtists(timeRange, limit);
     return topArtists.map(artist => artist.name);
   }
-
   private async generateLLMRecommendations(topTracks: TrackInfo[], topArtists: string[]): Promise<string[]> {
     const prompt = `Based on the user's top tracks:
 ${topTracks.map(track => `- ${track.name} by ${track.artist}`).join('\n')}
@@ -41,7 +37,7 @@ ${topTracks.map(track => `- ${track.name} by ${track.artist}`).join('\n')}
 And top artists:
 ${topArtists.join(', ')}
 
-Suggest 10 new songs the user might enjoy. Please format your response as a JSON array of objects, where each object has 'name' and 'artist' properties. Do not include any explanations or additional text.`;
+each object has 'name' and 'artist' properties. `;
 
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-0613",
